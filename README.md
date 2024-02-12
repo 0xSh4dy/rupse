@@ -1,1 +1,1 @@
-# A blazing fast-debugger for x86-64 and x86 architecture written in Rust
+## A blazing-fast debugger for x86-64 and x86, written in Rust
