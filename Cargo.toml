@@ -1,5 +1,5 @@
 [package]
-name = "blazy_debugger"
+name = "rupse"
 version = "0.1.0"
 edition = "2021"
 

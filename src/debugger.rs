@@ -93,7 +93,7 @@ pub fn run_debugger(file_path: String) {
 fn run_debug_loop(file_path:String,child_pid:i32) {
     let debugger:Debugger = Debugger::new(file_path.clone(), child_pid);
     loop {
-        let inp = input::input_prompt("blazy".to_string());
+        let inp = input::input_prompt("rupse".to_string());
         match inp {
             Ok(input) => {
                 let command_handler = commands::CommandHandler::new(debugger.clone());
