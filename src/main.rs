@@ -4,6 +4,8 @@ mod commands;
 mod breakpoints;
 mod elfparser;
 mod fileops;
+mod disassembler;
+mod function;
 use std::env;
 
 fn main() {

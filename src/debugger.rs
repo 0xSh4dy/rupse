@@ -21,7 +21,7 @@ impl Debugger {
         }
     }
 
-    pub fn get_child_path(&self)->String{
+    pub fn get_child_path(&self) -> String {
         self.file_path.clone()
     }
 
@@ -84,14 +84,14 @@ pub fn run_debugger(file_path: String) {
                 println!("Started debugging {} with PID={}", file_path, pid);
                 // Wait for the child process to start
                 waitpid(Pid::from_raw(pid), None);
-                run_debug_loop(file_path,pid);
+                run_debug_loop(file_path, pid);
             }
         }
     }
 }
 
-fn run_debug_loop(file_path:String,child_pid:i32) {
-    let debugger:Debugger = Debugger::new(file_path.clone(), child_pid);
+fn run_debug_loop(file_path: String, child_pid: i32) {
+    let debugger: Debugger = Debugger::new(file_path.clone(), child_pid);
     loop {
         let inp = input::input_prompt("rupse".to_string());
         match inp {

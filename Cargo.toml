@@ -8,3 +8,5 @@ edition = "2021"
 [dependencies]
 nix = "0.26.4"
 goblin = "0.6.1"
+colored = "2.1.0"
+iced-x86 = "1.21.0"
