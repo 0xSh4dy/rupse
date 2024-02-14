@@ -1,11 +1,14 @@
 mod debugger;
 mod input;
+mod cmds;
 mod commands;
 mod breakpoints;
 mod elfparser;
 mod fileops;
 mod disassembler;
 mod function;
+mod dynamic;
+mod utils;
 use std::env;
 
 fn main() {

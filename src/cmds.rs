@@ -2,6 +2,7 @@ use super::debugger::Debugger;
 use super::disassembler;
 use super::elfparser::ELFParser;
 use colored::Colorize;
+use super::commands::breakpoints;
 
 pub struct CommandHandler {
     debugger: Debugger,
@@ -20,7 +21,10 @@ impl CommandHandler {
             println!("help : Display the help menu");
             println!("continue : Continue execution of the debugee");
             println!("list-fns : List all the functions");
-            println!("disas function_name: Disassemble a function")
+            println!("disas function_name: Disassemble a function");
+
+            // Breakpoint related commands
+            breakpoints::print_help();
         } else if command == "continue" {
             self.debugger.continue_execution();
         } else if command == "list-fns" {
@@ -65,6 +69,19 @@ impl CommandHandler {
                     }
                 }
             }
+        }
+        else if command.contains("bpt"){
+           let res = breakpoints::handle_breakpoint_commands(&command,self.debugger.get_child_pid());
+           match res{
+                Ok(())=>{},
+                Err(err)=>{
+                    let res = format!("Error: {}",err);
+                    println!("{}",res.red());
+                }
+           }
+        }
+        else if command == "got"{
+
         }
     }
 }

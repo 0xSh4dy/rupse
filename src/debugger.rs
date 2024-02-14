@@ -1,4 +1,4 @@
-use super::{commands, input};
+use super::{cmds, input};
 use nix::libc::{execl, ptrace};
 use nix::libc::{fork, PTRACE_TRACEME};
 use nix::sys::ptrace;
@@ -25,6 +25,10 @@ impl Debugger {
         self.file_path.clone()
     }
 
+    pub fn get_child_pid(&self)->i32{
+        self.child_pid
+    }
+    
     pub fn continue_execution(&self) {
         let child_pid = Pid::from_raw(self.child_pid);
         let retval = ptrace::cont(child_pid, None);
@@ -96,7 +100,7 @@ fn run_debug_loop(file_path: String, child_pid: i32) {
         let inp = input::input_prompt("rupse".to_string());
         match inp {
             Ok(input) => {
-                let command_handler = commands::CommandHandler::new(debugger.clone());
+                let command_handler = cmds::CommandHandler::new(debugger.clone());
                 command_handler.handle_command(input);
             }
             Err(error) => {
