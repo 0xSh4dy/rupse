@@ -1,6 +1,6 @@
 use std::io::{self, Write};
 
-pub fn input_prompt(display_str: String) -> io::Result<(String)> {
+pub fn input_prompt(display_str: String) -> io::Result<String> {
     print!("{}> ", display_str);
     io::stdout().flush()?;
     let mut buffer = String::new();

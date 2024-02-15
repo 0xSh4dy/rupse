@@ -4,7 +4,7 @@ use colored::Colorize;
 use nix::unistd::Pid;
 use std::error::Error;
 
-static mut BREAKPOINT_LIST: Vec<Breakpoint> = Vec::new();
+pub static mut BREAKPOINT_LIST: Vec<Breakpoint> = Vec::new();
 
 pub fn print_help() {
     println!(
@@ -34,7 +34,7 @@ pub fn handle_breakpoint_commands(command: &String, pid: i32) -> Result<(), Box<
             ));
         }
         address = address.replace("0x", "");
-        let addr: i64 = i64::from_str_radix(address.as_str(), 16)?;
+        let addr: u64 = u64::from_str_radix(address.as_str(), 16)?;
 
         if cmd1 == "set" {
             unsafe {

@@ -2,7 +2,8 @@ use super::debugger::Debugger;
 use super::disassembler;
 use super::elfparser::ELFParser;
 use colored::Colorize;
-use super::commands::breakpoints;
+use super::commands::{breakpoints,registers};
+
 
 pub struct CommandHandler {
     debugger: Debugger,
@@ -26,7 +27,14 @@ impl CommandHandler {
             // Breakpoint related commands
             breakpoints::print_help();
         } else if command == "continue" {
-            self.debugger.continue_execution();
+            let res = self.debugger.continue_execution();
+            match res{
+                Ok(())=>{},
+                Err(err)=>{
+                    let msg = format!("{}",err);
+                    println!("{}",msg.red());
+                }
+            }
         } else if command == "list-fns" {
             let parser = ELFParser::new(self.debugger.get_child_path());
             let res = parser.list_functions();
@@ -79,6 +87,19 @@ impl CommandHandler {
                     println!("{}",res.red());
                 }
            }
+        }
+        else if command.contains("reg"){
+            let res = registers::handle_register_commands(&command, self.debugger.get_child_pid());
+            match res{
+                Ok(())=>{},
+                Err(err)=>{
+                    let res = format!("Error: {}",err);
+                    println!("{}",res.red());
+                }
+            }
+        }
+        else if command == "backtrace"{
+            
         }
         else if command == "got"{
 

@@ -1,6 +1,6 @@
 mod debugger;
 mod input;
-mod cmds;
+mod cmd;
 mod commands;
 mod breakpoints;
 mod elfparser;
@@ -9,6 +9,9 @@ mod disassembler;
 mod function;
 mod dynamic;
 mod utils;
+mod registers;
+mod signals;
+mod backtrace;
 use std::env;
 
 fn main() {

@@ -1,4 +1,4 @@
-use super::{cmds, input};
+use super::{cmd, commands::breakpoints, input, registers, signals};
 use nix::libc::{execl, ptrace};
 use nix::libc::{fork, PTRACE_TRACEME};
 use nix::sys::ptrace;
@@ -25,24 +25,50 @@ impl Debugger {
         self.file_path.clone()
     }
 
-    pub fn get_child_pid(&self)->i32{
+    pub fn get_child_pid(&self) -> i32 {
         self.child_pid
     }
-    
-    pub fn continue_execution(&self) {
-        let child_pid = Pid::from_raw(self.child_pid);
-        let retval = ptrace::cont(child_pid, None);
-        match retval {
-            Ok(_) => {
-                waitpid(child_pid, None);
-            }
-            Err(_) => {
-                println!(
-                    "Error, debugger::continue_execution -> {}",
-                    Error::last_os_error()
-                );
+
+    fn wait_for_signal(&self) -> Result<(), Box<dyn std::error::Error>> {
+        waitpid(Pid::from_raw(self.child_pid), None)?;
+        let siginfo = ptrace::getsiginfo(Pid::from_raw(self.child_pid))?;
+        let signal_handler = signals::SignalHandler::new(siginfo, self.child_pid);
+        signal_handler.handle_signal()?;
+        Ok(())
+    }
+
+    fn step_over_breakpoint(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let pc = registers::get_program_counter(self.child_pid)?;
+        let possible_bpt_location = pc;
+        unsafe {
+            let res = breakpoints::BREAKPOINT_LIST
+                .iter()
+                .position(|x| x.get_address() == possible_bpt_location);
+            match res {
+                Some(idx) => {
+                    let breakpoint = &mut breakpoints::BREAKPOINT_LIST[idx];
+                    if breakpoint.is_bpt_enabled() {
+                        // The original instruction must be executed instead of int3, therefore we step back
+                        breakpoint.disable()?;
+                        // Execute the original instruction
+                        ptrace::step(Pid::from_raw(self.child_pid), None)?;
+                        self.wait_for_signal()?;
+                        // Re-enable the breakpoint, after executing the original instruction
+                        breakpoint.enable()?;
+                    }
+                }
+                None => {}
             }
         }
+
+        Ok(())
+    }
+    pub fn continue_execution(&self) -> Result<(), Box<dyn std::error::Error>> {
+        let child_pid = Pid::from_raw(self.child_pid);
+        self.step_over_breakpoint()?;
+        ptrace::cont(child_pid, None)?;
+        self.wait_for_signal()?;
+        Ok(())
     }
 }
 
@@ -68,6 +94,7 @@ fn execute_debugee(file_path: String) -> Result<(), std::io::Error> {
     }
 }
 
+#[allow(dead_code)]
 pub fn run_debugger(file_path: String) {
     unsafe {
         let pid = fork();
@@ -87,7 +114,7 @@ pub fn run_debugger(file_path: String) {
 
                 println!("Started debugging {} with PID={}", file_path, pid);
                 // Wait for the child process to start
-                waitpid(Pid::from_raw(pid), None);
+                let _ = waitpid(Pid::from_raw(pid), None);
                 run_debug_loop(file_path, pid);
             }
         }
@@ -100,7 +127,7 @@ fn run_debug_loop(file_path: String, child_pid: i32) {
         let inp = input::input_prompt("rupse".to_string());
         match inp {
             Ok(input) => {
-                let command_handler = cmds::CommandHandler::new(debugger.clone());
+                let command_handler = cmd::CommandHandler::new(debugger.clone());
                 command_handler.handle_command(input);
             }
             Err(error) => {
